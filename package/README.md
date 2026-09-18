@@ -31,10 +31,12 @@ kpackagetool6 -t Plasma/Applet -i package/
 Or use the release `.plasmoid` file:
 
 ```bash
-kpackagetool6 -t Plasma/Applet -i Stickies-0.5.0.plasmoid
+kpackagetool6 -t Plasma/Applet -i Stickies-0.5.2.plasmoid
 ```
 
 Then: desktop right-click → **Add Widgets** → search **Stickies** / **随手贴** → place on the right edge and stretch tall.
+
+Notes are stored at `~/.local/share/stickies/notes.json` (outside the plasmoid install dir, so upgrades never wipe them).
 
 Preview without installing to the desktop:
 

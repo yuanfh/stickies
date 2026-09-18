@@ -249,15 +249,12 @@ PlasmoidItem {
                     Text {
                         anchors.left: parent.left
                         anchors.verticalCenter: parent.verticalCenter
-                        text: {
-                            const total = view.stickyCount
-                            const done = view.completedCount
-                            const unit = total === 1 ? "sticky" : "stickies"
-                            return total + " " + unit + ", " + done + " completed"
-                        }
+                        text: view.stickyCount + " stickies, " + view.completedCount + " done"
                         color: colors.foregroundMuted
                         font.family: view.uiFont
                         font.pixelSize: Math.max(11, Math.round(view.fontSize * 0.78))
+                        textFormat: Text.PlainText
+                        renderType: Text.NativeRendering
                     }
 
                     Text {
@@ -268,6 +265,8 @@ PlasmoidItem {
                         font.family: view.uiFont
                         font.pixelSize: Math.max(11, Math.round(view.fontSize * 0.78))
                         font.weight: Font.Medium
+                        textFormat: Text.PlainText
+                        renderType: Text.NativeRendering
                         opacity: view.completedCount > 0 ? 1 : 0.45
 
                         MouseArea {

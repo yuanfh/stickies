@@ -291,6 +291,25 @@ Item {
         }
     }
 
+    // True when text looks like UTF-8 bytes shown as Latin-1 (ä¿®æ… / Ã¤ etc.).
+    function looksLikeMojibake(text) {
+        const s = String(text || "")
+        if (s.length < 2)
+            return false
+        let high = 0
+        let realCjk = 0
+        for (let i = 0; i < s.length; i++) {
+            const c = s.charCodeAt(i)
+            if (c >= 0x4e00 && c <= 0x9fff)
+                realCjk++
+            else if (c >= 0x80 && c <= 0xff)
+                high++
+        }
+        if (realCjk >= 2)
+            return false
+        return high >= 4 && (high / s.length) >= 0.12
+    }
+
     // If Plasma mangled UTF-8 as Latin-1, peel layers back to real text.
     function repairMojibake(text) {
         let s = String(text || "")
@@ -346,11 +365,38 @@ Item {
         return s
     }
 
+    function pickCleanerJson(primary, fallback) {
+        const a = String(primary || "")
+        const b = String(fallback || "")
+        const aRep = repairMojibake(a)
+        const bRep = repairMojibake(b)
+        const aBad = looksLikeMojibake(a) && !looksLikeMojibake(aRep)
+        const bHas = bRep.length > 2 && bRep !== "[]"
+        if (aBad && bHas && !looksLikeMojibake(bRep))
+            return bRep
+        if (looksLikeMojibake(a) && !looksLikeMojibake(aRep))
+            return aRep
+        if (aRep.length > 2 && aRep !== "[]")
+            return aRep
+        return bRep.length ? bRep : "[]"
+    }
+
     function saveNow() {
         saveTimer.stop()
         const payload = toJson()
         if (configuration)
             configuration.notesJson = payload
+
+        // Never push an empty array to disk while we previously had notes
+        // (guards against load races during plasmashell restart / upgrade).
+        if (payload === "[]" || payload === "") {
+            const cfg = configNotes()
+            if (cfg && cfg !== "[]" && cfg.length > 2) {
+                store.lastError = "skip empty save"
+                dirty = false
+                return
+            }
+        }
 
         if (!scriptPath) {
             dirty = false
@@ -400,23 +446,36 @@ Item {
                 return
             }
 
-            let useText = "[]"
-            if (String(sourceName).indexOf(" read-b64") !== -1) {
-                useText = store.b64ToUtf8(stdout)
-            } else {
-                // Legacy plain read — repair possible Latin-1 mangling
-                useText = store.repairMojibake((stdout && String(stdout).length) ? stdout : "[]")
-            }
+            const fileText = (String(sourceName).indexOf(" read-b64") !== -1)
+                             ? store.b64ToUtf8(stdout)
+                             : store.repairMojibake((stdout && String(stdout).length) ? stdout : "[]")
+            const cfgText = store.repairMojibake(store.configNotes())
+            let useText = store.pickCleanerJson(fileText, cfgText)
 
             try {
                 const arr = JSON.parse(useText)
-                const cfgArr = JSON.parse(store.repairMojibake(store.configNotes()))
+                const cfgArr = JSON.parse(cfgText)
                 if (Array.isArray(arr) && arr.length === 0 && Array.isArray(cfgArr) && cfgArr.length > 0)
-                    useText = store.repairMojibake(store.configNotes())
+                    useText = cfgText
             } catch (e) {
-                useText = store.repairMojibake(store.configNotes())
+                useText = cfgText
             }
-            store.loadFromJson(useText, store.repairMojibake(store.configNotes()))
+
+            store.loadFromJson(useText, cfgText)
+
+            // Persist only when the on-disk payload was mojibake or we fell back to config.
+            const neededRewrite = store.looksLikeMojibake(fileText)
+                                  || (useText !== fileText && useText === cfgText)
+            if (neededRewrite) {
+                try {
+                    const cleaned = JSON.parse(useText)
+                    if (Array.isArray(cleaned) && cleaned.length > 0) {
+                        store.notes = cleaned
+                        store.dirty = true
+                        store.saveSoon()
+                    }
+                } catch (e2) { /* ignore */ }
+            }
         }
     }
 
