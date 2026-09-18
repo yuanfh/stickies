@@ -1,0 +1,6 @@
+Copyright (c) Jack Faith / jaxparrow07 — LiquidGlass.qml and shaders under
+package/contents/ui/components/ are adapted from:
+https://github.com/jaxparrow07/macos-widgets
+Licensed under GPL-3.0.
+
+Remaining Side Notes code: GPL-3.0+

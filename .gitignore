@@ -1,0 +1,10 @@
+release/
+*.plasmoid
+*.pdf
+.DS_Store
+*~
+*.bak
+*.tmp
+.env
+.env.*
+package/contents/fonts/

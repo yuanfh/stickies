@@ -1,0 +1,23 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "yuanfh@users.noreply.github.com",
+                "Name": "yuanfh"
+            }
+        ],
+        "Category": "Utilities",
+        "Description": "Edge-hidden frosted-glass Stickies — jot notes that slide in from the screen edge",
+        "Description[zh_CN]": "贴边隐藏的毛玻璃随手贴，点开即写、滑入滑出",
+        "Icon": "accessories-text-editor",
+        "Id": "org.yuanfh.sidenotes",
+        "License": "GPL-3.0+",
+        "Name": "Stickies",
+        "Name[zh_CN]": "随手贴",
+        "Version": "0.5.0",
+        "Website": "https://github.com/yuanfh/stickies",
+        "BugReportUrl": "https://github.com/yuanfh/stickies/issues"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}
